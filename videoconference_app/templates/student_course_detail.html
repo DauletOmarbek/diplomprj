@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ course.title }}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <h1>{{ course.title }}</h1>
+    <p><strong>Description:</strong> {{ course.description }}</p>
+
+    <h2>Lessons</h2>
+    {% if lessons %}
+      <ul>
+        {% for lesson in lessons %}
+          <li>
+            <h3>{{ lesson.title }}</h3>
+            <p>{{ lesson.description }}</p>
+            {% if lesson.video_url %}
+              <a href="{{ lesson.video_url }}" target="_blank">Watch Video</a>
+            {% else %}
+              <p>No video available for this lesson.</p>
+            {% endif %}
+            <p><strong>Section:</strong> {{ lesson.section }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No lessons available yet.</p>
+    {% endif %}
+    <a href="{% url 'my_enrolled_courses' %}" class="button">Back to My Courses</a>
+  </div>
+</body>
+</html>

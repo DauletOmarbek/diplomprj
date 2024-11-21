@@ -8,14 +8,24 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Video Conference</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <body>
-    <div class="dashboard">
-        <h1>Welcome, {{name}}!</h1>
-        <!-- create a "New Meeting" button -->
-        <a href="{% url 'meeting' %}" class="button">New Meeting</a>
-        <a href="{% url 'join_room' %}" class="button">Join Meeting</a>
-        <a href="{% url 'logout' %}" class="button">Logout</a>
-    </div>
-  </body>
 </head>
+<body>
+  <div class="dashboard">
+    <h1>Welcome, {{ name }}!</h1>
+
+    <!-- Show different options based on the user's role -->
+    {% if user.role == 'teacher' %}
+      <a href="{% url 'my_courses' %}" class="button">My Courses</a>
+      <a href="{% url 'create_course' %}" class="button">Create a Course</a>
+      <a href="{% url 'manage_requests' %}" class="button">Manage Requests</a>
+      <a href="{% url 'meeting' %}" class="button">New Meeting</a>
+    {% elif user.role == 'student' %}
+      <a href="{% url 'view_courses' %}" class="button">View Courses</a>
+      <a href="{% url 'my_enrolled_courses' %}" class="button">My Courses</a>
+      <a href="{% url 'join_room' %}" class="button">Join Meeting</a>
+    {% endif %}
+
+    <a href="{% url 'logout' %}" class="button">Logout</a>
+  </div>
+</body>
 </html>

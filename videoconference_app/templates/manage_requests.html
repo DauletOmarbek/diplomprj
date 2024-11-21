@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Requests</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <h1>Manage Enrollment Requests</h1>
+    
+    {% if requests %}
+      <ul>
+        {% for request in requests %}
+          <li>
+            <p><strong>Student:</strong> {{ request.student.first_name }} {{ request.student.last_name }} ({{ request.student.email }})</p>
+            <p><strong>Course:</strong> {{ request.course.title }}</p>
+            <p><strong>Status:</strong> {{ request.get_status_display }}</p>
+            <form method="POST" action="{% url 'respond_request' request.id 'accept' %}">
+              {% csrf_token %}
+              <button type="submit" class="button">Accept</button>
+            </form>
+            <form method="POST" action="{% url 'respond_request' request.id 'reject' %}">
+              {% csrf_token %}
+              <button type="submit" class="button danger">Reject</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No requests to manage at the moment.</p>
+    {% endif %}
+    
+    <a href="{% url 'dashboard' %}" class="button">Back to Dashboard</a>
+  </div>
+</body>
+</html>

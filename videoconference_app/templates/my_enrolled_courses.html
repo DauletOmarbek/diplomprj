@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Courses</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <h1>My Courses</h1>
+    {% if courses %}
+      <ul>
+        {% for course in courses %}
+          <li>
+            <h2>{{ course.title }}</h2>
+            <p>ID: {{ course.id }}</p> <!-- Проверяем, доступен ли ID -->
+            <p>{{ course.description }}</p>
+            <a href="{% url 'student_course_detail' course.id %}" class="button">Enter Course</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You have not joined any courses yet.</p>
+    {% endif %}
+    <a href="{% url 'dashboard' %}" class="button">Back to Dashboard</a>
+  </div>
+</body>
+</html>

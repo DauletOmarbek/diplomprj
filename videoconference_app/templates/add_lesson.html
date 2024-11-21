@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Lesson</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <div class="container">
+    <h1>Add Lesson to {{ course.title }}</h1>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="text" name="title" placeholder="Lesson Title" required>
+      <textarea name="description" placeholder="Lesson Description" rows="4" required></textarea>
+      <input type="text" name="section" placeholder="Section (Optional)">
+      <input type="url" name="video_url" placeholder="Video URL (Optional)">
+      <input type="submit" value="Add Lesson" class="button">
+    </form>
+    <a href="{% url 'course_detail' course.id %}" class="button">Back to Course</a>
+  </div>
+</body>
+</html>
