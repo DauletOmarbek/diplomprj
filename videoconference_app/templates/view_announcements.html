@@ -1,0 +1,18 @@
+<!--{% extends 'base.html' %}-->
+
+{% block content %}
+  <h1>Ваши уведомления</h1>
+  {% if announcements %}
+    <ul>
+      {% for announcement in announcements %}
+        <li>
+          <strong>{{ announcement.title }}</strong> ({{ announcement.scheduled_date|date:"Y-m-d H:i" }})
+          <p>{{ announcement.description }}</p>
+          <p><em>Курс: {{ announcement.lesson.course.title }}, Лекция: {{ announcement.lesson.title }}</em></p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Нет доступных уведомлений.</p>
+  {% endif %}
+{% endblock %}

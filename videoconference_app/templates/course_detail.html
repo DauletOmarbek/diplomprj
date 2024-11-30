@@ -24,13 +24,34 @@
               <a href="{{ lesson.video_url }}" target="_blank">Watch Video</a>
             {% endif %}
             <p><strong>Section:</strong> {{ lesson.section }}</p>
+
+            <!-- Ссылка для добавления теста к уроку -->
+            <a href="{% url 'add_test' lesson.id %}" class="button">Add Test</a>
+            <!-- Внутри цикла по лекциям -->
+            <a href="{% url 'add_announcement' lesson.id %}" class="button">Добавить уведомление</a>
+
+            <!-- Отображение тестов для урока -->
+            {% if lesson.tests.all %}
+              <h4>Tests</h4>
+              <ul>
+                {% for test in lesson.tests.all %}
+                  <li>
+                    {{ test.title }}
+                    <!-- Ссылка для просмотра результатов теста -->
+                    <a href="{% url 'view_test_results' test.id %}" class="button">View Results</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p>No tests added yet.</p>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
     {% else %}
       <p>No lessons added yet.</p>
     {% endif %}
-
+    
     <a href="{% url 'add_lesson' course.id %}" class="button">Add Lesson</a>
     <a href="{% url 'my_courses' %}" class="button">Back to My Courses</a>
   </div>

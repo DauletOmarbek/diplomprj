@@ -19,9 +19,12 @@
       <a href="{% url 'create_course' %}" class="button">Create a Course</a>
       <a href="{% url 'manage_requests' %}" class="button">Manage Requests</a>
       <a href="{% url 'meeting' %}" class="button">New Meeting</a>
+      <a href="{% url 'join_room' %}" class="button">Join Meeting</a>
     {% elif user.role == 'student' %}
       <a href="{% url 'view_courses' %}" class="button">View Courses</a>
       <a href="{% url 'my_enrolled_courses' %}" class="button">My Courses</a>
+      <a href="{% url 'view_announcements' %}">Просмотр уведомлений</a>
+      <a href="{% url 'meeting' %}" class="button">New Meeting</a>
       <a href="{% url 'join_room' %}" class="button">Join Meeting</a>
     {% endif %}
 

@@ -30,3 +30,31 @@ class RegisterForm(UserCreationForm):
             user.save()
 
         return user
+
+#***************************************************************************************
+# forms.py
+from django import forms
+from .models import Question
+
+class TestForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        questions = kwargs.pop('questions')  # Список вопросов
+        super().__init__(*args, **kwargs)
+
+        for question in questions:
+            self.fields[f'question_{question.id}'] = forms.CharField(
+                label=question.question_text,
+                max_length=255,
+                required=True
+            )
+
+
+from .models import Announcement
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['title', 'description', 'scheduled_date']
+        widgets = {
+            'scheduled_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }

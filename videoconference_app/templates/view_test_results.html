@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Results for {{ test.title }}</title>
+</head>
+<body>
+    <h1>Test Results for {{ test.title }}</h1>
+    <table border="1">
+        <tr>
+            <th>Student</th>
+            <th>Score</th>
+            <th>Total Questions</th>
+            <th>Percentage</th>
+            <th>Date Completed</th>
+        </tr>
+        {% for result in results %}
+        <tr>
+            <td>{{ result.student.email }}</td>
+            <td>{{ result.score }}</td>
+            <td>{{ result.total_questions }}</td>
+            <td>{{ result.percentage }}%</td>
+            <td>{{ result.completed_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{% url 'course_detail' test.lesson.course.id %}">Back to Course</a>
+</body>
+</html>

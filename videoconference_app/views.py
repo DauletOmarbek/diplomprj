@@ -229,6 +229,7 @@ def course_detail(request, course_id):
     return render(request, 'course_detail.html', {'course': course})
 
 
+#************************************************
 
 from .serializers import (
     CustomUserSerializer, CourseSerializer,
@@ -255,3 +256,217 @@ class LessonViewSet(viewsets.ModelViewSet):
 class CourseMaterialViewSet(viewsets.ModelViewSet):
     queryset = CourseMaterial.objects.all()
     serializer_class = CourseMaterialSerializer
+
+
+
+# views.py
+
+from rest_framework import viewsets, permissions
+from .models import Test, Question, TestResult, Announcement
+from .serializers import TestSerializer, QuestionSerializer, TestResultSerializer, AnnouncementSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+
+# Класс для проверки, является ли пользователь учителем
+class IsTeacher(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'teacher'
+
+# Класс для проверки, является ли пользователь студентом
+class IsStudent(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'student'
+
+class TestViewSet(viewsets.ModelViewSet):
+    queryset = Test.objects.all()
+    serializer_class = TestSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsTeacher]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
+
+
+    @action(detail=True, methods=['post'], permission_classes=[IsStudent])
+    def take_test(self, request, pk=None):
+        test = self.get_object()
+        questions = test.questions.all()
+        answers = request.data.get('answers', {})
+        score = 0
+        total_questions = questions.count()
+
+        for question in questions:
+            question_id = str(question.id)
+            student_answer = answers.get(question_id, '').strip().lower()
+            correct_answer = question.correct_answer.strip().lower()
+            if student_answer == correct_answer:
+                score += 1
+
+        result = TestResult.objects.create(
+            student=request.user,
+            test=test,
+            score=score,
+            total_questions=total_questions
+        )
+
+        serializer = TestResultSerializer(result)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class QuestionViewSet(viewsets.ModelViewSet):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsTeacher]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+class TestResultViewSet(viewsets.ModelViewSet):
+    queryset = TestResult.objects.all()
+    serializer_class = TestResultSerializer
+
+    def get_permissions(self):
+        if self.action == 'create':
+            permission_classes = [IsStudent]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    # Переопределяем метод create, чтобы автоматически вычислять процент
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)
+
+class AnnouncementViewSet(viewsets.ModelViewSet):
+    queryset = Announcement.objects.all()
+    serializer_class = AnnouncementSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsTeacher]
+        else:
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+#***********************************************************************************************************
+# views.py
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Lesson, Test, Question, TestResult
+from .forms import TestForm
+from django.contrib.auth.decorators import login_required
+
+# Учитель добавляет тест
+@login_required
+def add_test(request, lesson_id):
+    if request.user.role != 'teacher':  # Только учитель может добавлять тесты
+        return redirect('dashboard')
+
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+
+    if request.method == 'POST':
+        test_title = request.POST.get('title')
+        if test_title:
+            test = Test.objects.create(lesson=lesson, title=test_title)
+            return redirect('course_detail', course_id=lesson.course.id)  # Перенаправление на страницу курса
+
+    return render(request, 'add_test.html', {'lesson': lesson})
+
+
+# Студент проходит тест
+@login_required
+def take_test(request, test_id):
+    test = get_object_or_404(Test, id=test_id)
+    questions = test.questions.all()
+
+    if request.method == 'POST':
+        form = TestForm(request.POST, questions=questions)
+        if form.is_valid():
+            score = 0
+            total_questions = len(questions)
+
+            # Проверяем ответы студента
+            for question in questions:
+                student_answer = form.cleaned_data.get(f'question_{question.id}').strip().lower()
+                if student_answer == question.correct_answer.strip().lower():
+                    score += 1
+
+            # Сохраняем результат
+            TestResult.objects.create(
+                student=request.user,
+                test=test,
+                score=score,
+                total_questions=total_questions
+            )
+
+            return redirect('test_result', test_id=test.id)
+
+    else:
+        form = TestForm(questions=questions)
+
+    return render(request, 'take_test.html', {'test': test, 'form': form})
+
+
+# Отображение результата теста
+@login_required
+def test_result(request, test_id):
+    test = get_object_or_404(Test, id=test_id)
+    result = get_object_or_404(TestResult, student=request.user, test=test)
+
+    return render(request, 'test_result.html', {'test': test, 'result': result})
+
+
+@login_required
+def view_test_results(request, test_id):
+    if request.user.role != 'teacher':
+        return redirect('dashboard')
+
+    test = get_object_or_404(Test, id=test_id)
+    results = TestResult.objects.filter(test=test)
+    return render(request, 'view_test_results.html', {'test': test, 'results': results})
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Lesson, Announcement
+from .forms import AnnouncementForm
+from django.utils import timezone
+
+@login_required
+def add_announcement(request, lesson_id):
+    if request.user.role != 'teacher':
+        return redirect('dashboard')
+
+    lesson = get_object_or_404(Lesson, id=lesson_id, course__teacher=request.user)
+
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST)
+        if form.is_valid():
+            announcement = form.save(commit=False)
+            announcement.lesson = lesson
+            announcement.save()
+            return redirect('course_detail', course_id=lesson.course.id)
+    else:
+        form = AnnouncementForm()
+
+    return render(request, 'add_announcement.html', {'form': form, 'lesson': lesson})
+
+
+@login_required
+def view_announcements(request):
+    if request.user.role != 'student':
+        return redirect('dashboard')
+
+    # Получаем все курсы, на которые записан студент
+    courses = request.user.enrolled_courses.all()
+
+    # Получаем все уведомления из этих курсов
+    announcements = Announcement.objects.filter(lesson__course__in=courses).order_by('scheduled_date')
+
+    return render(request, 'view_announcements.html', {'announcements': announcements})
+

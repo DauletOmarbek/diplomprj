@@ -1,0 +1,8 @@
+<h1>Add Test to {{ lesson.title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="title">Test Title:</label>
+    <input type="text" name="title" id="title" required>
+    <button type="submit">Create Test</button>
+</form>

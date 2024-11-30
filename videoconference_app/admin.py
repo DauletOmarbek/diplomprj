@@ -66,3 +66,34 @@ admin.site.register(Course, CourseAdmin)
 admin.site.register(CourseMaterial, CourseMaterialAdmin)
 admin.site.register(EnrollmentRequest, EnrollmentRequestAdmin)
 admin.site.register(Lesson, LessonAdmin)
+
+#***********************************************************************************************************
+# admin.py
+from django.contrib import admin
+from .models import Test, Question, TestResult
+
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 1  # Количество пустых строк для добавления вопросов
+
+
+class TestAdmin(admin.ModelAdmin):
+    list_display = ['title', 'lesson', 'created_at']
+    inlines = [QuestionInline]  # Инлайн-редактирование вопросов
+
+
+class TestResultAdmin(admin.ModelAdmin):
+    list_display = ['student', 'test', 'score', 'total_questions', 'percentage', 'completed_at']
+
+admin.site.register(Test, TestAdmin)
+admin.site.register(TestResult, TestResultAdmin)
+
+
+from .models import Announcement
+
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'lesson', 'scheduled_date', 'created_at']
+    search_fields = ['title', 'lesson__title', 'description']
+    list_filter = ['scheduled_date', 'created_at']
+
+admin.site.register(Announcement, AnnouncementAdmin)

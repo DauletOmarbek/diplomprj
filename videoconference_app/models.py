@@ -105,3 +105,55 @@ class Lesson(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.course.title})"
+
+
+#***********************************************************************************************************
+# models.py
+from django.db import models
+from django.conf import settings
+
+class Test(models.Model):
+    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, related_name='tests')
+    title = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Test for {self.lesson.title}"
+
+
+class Question(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField(default='')
+    correct_answer = models.TextField(default='')  # Здесь учитель указывает правильный ответ
+
+    def __str__(self):
+        return f"Question: {self.question_text}"
+
+
+class TestResult(models.Model):
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='test_results')
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='results')
+    score = models.FloatField()  # Количество правильных ответов
+    total_questions = models.IntegerField()  # Общее количество вопросов
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def percentage(self):
+        return (self.score / self.total_questions) * 100 if self.total_questions > 0 else 0
+
+    def __str__(self):
+        return f"{self.student.email} - {self.test.title} ({self.percentage()}%)"
+
+
+
+from django.utils import timezone
+
+class Announcement(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='announcements')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    scheduled_date = models.DateTimeField()  # Будущая дата и время онлайн-лекции
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Announcement for {self.lesson.title}: {self.title}"
+

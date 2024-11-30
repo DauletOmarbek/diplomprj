@@ -3,7 +3,10 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 from .views import CustomUserViewSet, CourseViewSet, EnrollmentRequestViewSet, LessonViewSet, CourseMaterialViewSet
-
+from .views import (
+    CustomUserViewSet, CourseViewSet, EnrollmentRequestViewSet, LessonViewSet,
+    CourseMaterialViewSet, TestViewSet, QuestionViewSet, TestResultViewSet, AnnouncementViewSet
+)
 
 
 router = DefaultRouter()
@@ -12,6 +15,16 @@ router.register(r'courses', CourseViewSet, basename='courses')
 router.register(r'enrollment_requests', EnrollmentRequestViewSet, basename='enrollment_requests')
 router.register(r'lessons', LessonViewSet, basename='lessons')
 router.register(r'course_materials', CourseMaterialViewSet, basename='course_materials')
+
+router.register(r'users', CustomUserViewSet, basename='users')
+router.register(r'courses', CourseViewSet, basename='courses')
+router.register(r'enrollment_requests', EnrollmentRequestViewSet, basename='enrollment_requests')
+router.register(r'lessons', LessonViewSet, basename='lessons')
+router.register(r'course_materials', CourseMaterialViewSet, basename='course_materials')
+router.register(r'tests', TestViewSet, basename='tests')
+router.register(r'questions', QuestionViewSet, basename='questions')
+router.register(r'test_results', TestResultViewSet, basename='test_results')
+router.register(r'announcements', AnnouncementViewSet, basename='announcements')
 
 
 
@@ -35,6 +48,14 @@ urlpatterns = [
     path('request_enrollment/<int:course_id>/', views.request_enrollment, name='request_enrollment'),
     path('my_enrolled_courses/', views.my_enrolled_courses, name='my_enrolled_courses'),
     path('student_course/<int:course_id>/', views.student_course_detail, name='student_course_detail'),
+    #***********************************************************************************************************
+    path('test/<int:test_id>/', views.take_test, name='take_test'),
+    path('test/<int:test_id>/result/', views.test_result, name='test_result'),
+    path('lesson/<int:lesson_id>/add_test/', views.add_test, name='add_test'), 
+    path('test/<int:test_id>/results/', views.view_test_results, name='view_test_results'),
+
+    path('lesson/<int:lesson_id>/add_announcement/', views.add_announcement, name='add_announcement'),
+    path('announcements/', views.view_announcements, name='view_announcements'),
 
 
 
