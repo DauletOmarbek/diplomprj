@@ -5,6 +5,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets
 from .models import CustomUser, Course, EnrollmentRequest, Lesson, CourseMaterial
+from django.http import JsonResponse
+from .serializers import CustomUserSerializer
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 def index(request):
@@ -35,6 +39,46 @@ def login_view(request):
             return render(request, 'login.html', {'error': "Invalid credentials. Please try again."})
 
     return render(request, 'login.html')
+
+def api_register(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'message': 'Registration successful'}, status=201)
+        return JsonResponse({'errors': form.errors}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def api_login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({'message': 'Login successful', 'user': user.email})
+        else:
+            return JsonResponse({'error': 'Invalid credentials'}, status=400)
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+def api_logout(request):
+    logout(request)
+    return JsonResponse({'message': 'Logged out successfully'})
+
+class GetUserByEmailView(APIView):
+    def get(self, request):
+        email = request.query_params.get('email')
+
+        if not email:
+            return Response({'error': 'Email parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            serializer = CustomUserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @login_required
 def dashboard(request):
